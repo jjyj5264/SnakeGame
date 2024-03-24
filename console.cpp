@@ -12,7 +12,7 @@
 #include <chrono>
 #include <cstdio>
 #include <vector>
-
+//...
 namespace console {
 
 template <typename T> using Vec = std::vector<T>;
