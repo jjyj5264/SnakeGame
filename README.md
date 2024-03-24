@@ -11,6 +11,9 @@ How to Play
 Build
 -
 ```
+git clone https://github.com/jjyj5264/SnakeGame.git
+cd SnakeGame
+
 g++ -Werror -std=c++11 -c *.cpp
 g++ -o main.exe *.o
 ```
