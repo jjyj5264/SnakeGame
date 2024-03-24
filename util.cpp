@@ -12,19 +12,22 @@
 #define WALL_RIGHT_BOTTOM_STRING "┛"
 #define WALL_LEFT_BOTTOM_STRING "┗"
 #define SNAKE_STRING "■"
-#define SNAKE_BODY_STRING "■"
+#define SNAKE_BODY_STRING "▪"
 #define APPLE_STRING "●"
 
 void gameLogic();
+void checkGameOver();
+void drawSnake();
 
 void initializeSeed() {
     std::srand(std::time(0));
 }
 
 int x = 0, y = 0; // Coordinate of Snake's Head.
-int tailX = 0, tailY = 0;
+int tailX[(BOARD_SIZE - 1) * (BOARD_SIZE - 1)];
+int tailY[(BOARD_SIZE - 1) * (BOARD_SIZE - 1)];
+int tailLength = 0;
 int appleX = 0, appleY = 0;
-int score = 0;
 int frame = 0;
 bool isGameOver = false;
 enum eInput { LEFT, RIGHT, UP, DOWN, NONE, ESC, ENTER };
@@ -45,27 +48,6 @@ void recieveInput() {
   }
   if (isGameOver && console::key(console::K_ENTER)) { input = ENTER; }
   if (console::key(console::K_NONE)) { input = NONE; }
-}
-
-void move() { // Moves only when !isGameOver.
-  if (!isGameOver && frame % MOVE_DELAY == 0) {
-    switch (direction) {
-    case LEFT:
-        x--;
-        break;
-    case RIGHT:
-        x++;
-        break;
-    case UP:
-        y--;
-        break;
-    case DOWN:
-        y++;
-        break;
-    default:
-        break;
-    }
-  }
 }
 
 void restrictInScreen() {
@@ -103,23 +85,26 @@ void drawBoard() {
     console::draw(BOARD_SIZE - 1, i, WALL_VERTICAL_STRING);
   }
   
-  // Draw snake's head
+  // Draw snake
   console::draw(x, y, SNAKE_STRING);
-
-  // Draw snake's body
-  // ...
+  drawSnake();
 
   // Draw apple
   console::draw(appleX, appleY, APPLE_STRING);
 }
 
-void drawScore() {
-  console::draw((BOARD_SIZE / 2) - 2, BOARD_SIZE, "Score: " + std::to_string(score));
+void drawSnake() {
+  for (int i = 0; i < tailLength; i++) {
+    console::draw(tailX[i], tailY[i], SNAKE_BODY_STRING);
+  }
+
+  console::draw(x, y, SNAKE_STRING);
 }
 
-void drawGameOver() {
-  console::draw((BOARD_SIZE / 4), BOARD_SIZE / 2, "YOU LOSE!");
-  console::draw((BOARD_SIZE / 8), (BOARD_SIZE / 2) + 1, "Try again? (Enter)");
+void drawScore() {
+  console::draw((BOARD_SIZE / 2) - 2, BOARD_SIZE, "Score: " + std::to_string(tailLength * 10));
+  console::draw(0, BOARD_SIZE + 1, "X: " + std::to_string(x));
+  console::draw(0, BOARD_SIZE + 2, "Y: " + std::to_string(y));
 }
 
 void checkCollision() {
@@ -127,6 +112,28 @@ void checkCollision() {
   if (x == 0 || x == BOARD_SIZE - 1 || y == 0 || y == BOARD_SIZE - 1) {
     isGameOver = true;
   }
+
+  // Body cells
+  for (int i = 0; i < tailLength; i++) {
+    if (x == tailX[i] && y == tailY[i]) {
+      isGameOver = true;
+    }
+  }
+}
+
+void drawGameWin() {
+  console::draw((BOARD_SIZE / 4), BOARD_SIZE / 2, "YOU WIN!");
+}
+
+void checkGameWin() {
+  if (tailLength == (BOARD_SIZE - 1) * (BOARD_SIZE - 1)) {
+    drawGameWin();
+  }
+}
+
+void drawGameOver() {
+  console::draw((BOARD_SIZE / 4), BOARD_SIZE / 2, "YOU LOSE!");
+  console::draw((BOARD_SIZE / 8), (BOARD_SIZE / 2) + 1, "Try again? (Enter)");
 }
 
 void checkGameOver() {
@@ -136,19 +143,61 @@ void checkGameOver() {
   if (isGameOver) {
     drawGameOver();
 
-    if (input == ENTER) {
+    if (input == ENTER) { // Reset
       isGameOver = false;
-      x = 0, y = 0;
-      tailX = 0, tailY = 0;
-      appleX = 0, appleY = 0;
-      score = 0;
+      x = 0, y = 0; appleX = 0, appleY = 0;
+      // ...
+      tailLength = 0;
       frame = 0;
-      isGameOver = false;
-      direction = RIGHT;
-      input = NONE;
+      direction = RIGHT; input = NONE;
       gameLogic(); // Restart the game.
     }
   }
+}
+
+void checkEat() {
+  if (x == appleX && y == appleY) { // If it's true.
+    initApple();
+    tailLength++;
+  }
+}
+
+void move() {
+  if (!isGameOver && frame % MOVE_DELAY == 0) {
+    int prevX = tailX[0];
+    int prevY = tailY[0];
+    int pprevX, pprevY;
+    tailX[0] = x; // Follow the head.
+    tailY[0] = y;
+
+    for (int i = 1; i < tailLength; i++) {
+      pprevX = tailX[i];
+      pprevY = tailY[i];
+      tailX[i] = prevX;
+      tailY[i] = prevY;
+      prevX = pprevX;
+      prevY = pprevY;
+    }
+
+    switch (direction) {
+      case LEFT:
+        x--;
+        break;
+      case RIGHT:
+        x++;
+        break;
+      case UP:
+        y--;
+        break;
+      case DOWN:
+        y++;
+        break;
+      default:
+        break;
+    }
+  }
+
+  checkGameOver();
 }
 
 // Game runs through this.
@@ -163,17 +212,17 @@ void gameLogic() {
     console::clear();
     
     restrictInScreen();
-    drawBoard(); // 1. Draw.
-    recieveInput(); // 2. Recieve user input.
-    checkGameOver(); // 3. Check if it's not Game Over.
-    move(); // 4. If it's not, move.
-    // checkEat();
-    drawScore(); // 5. etc...
+    drawBoard();
+    recieveInput();
+    move();
+    checkEat();
+    checkGameWin();
+    drawScore();
 
     // 화면을 갱신하고 다음 프레임까지 대기한다.
     console::wait();
     
-    if (frame == 60) { // Just scared about overflow.
+    if (frame == 60) {
       frame = 0;
     }
 
