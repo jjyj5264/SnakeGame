@@ -36,10 +36,18 @@ eInput input = NONE;
 
 void recieveInput() {
   // Directions
-  if (console::key(console::K_LEFT)) { direction = LEFT; }
-  if (console::key(console::K_RIGHT)) { direction = RIGHT; }
-  if (console::key(console::K_UP)) { direction = UP; }
-  if (console::key(console::K_DOWN)) { direction = DOWN; }
+  if (console::key(console::K_LEFT) && direction != RIGHT) {
+    direction = LEFT;
+  }
+  if (console::key(console::K_RIGHT) && direction != LEFT) {
+    direction = RIGHT;
+  }
+  if (console::key(console::K_UP) && direction != DOWN) {
+    direction = UP;
+  }
+  if (console::key(console::K_DOWN) && direction != UP) {
+    direction = DOWN;
+  }
 
   // Inputs
   if (console::key(console::K_ESC)){
@@ -64,8 +72,8 @@ void initSnake() {
 }
 
 void initApple() {
-  appleX = (std::rand() % 13) + 1; // 1 - 13
-  appleY = (std::rand() % 13) + 1; // 1 - 13
+  appleX = (std::rand() % (BOARD_SIZE - 2)) + 1; // 1 - 13
+  appleY = (std::rand() % (BOARD_SIZE - 2)) + 1; // 1 - 13
 }
 
 void drawBoard() {
@@ -222,7 +230,7 @@ void gameLogic() {
     // 화면을 갱신하고 다음 프레임까지 대기한다.
     console::wait();
     
-    if (frame == 60) {
+    if (frame == 60) { // Just scared about overflow.
       frame = 0;
     }
 
