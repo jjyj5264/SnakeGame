@@ -15,6 +15,8 @@
 #define SNAKE_BODY_STRING "■"
 #define APPLE_STRING "●"
 
+void gameLogic();
+
 void initializeSeed() {
     std::srand(std::time(0));
 }
@@ -24,29 +26,29 @@ int tailX = 0, tailY = 0;
 int appleX = 0, appleY = 0;
 int score = 0;
 int frame = 0;
-enum eDirection { LEFT, RIGHT, UP, DOWN };
-eDirection direction = RIGHT;
+bool isGameOver = false;
+enum eInput { LEFT, RIGHT, UP, DOWN, NONE, ESC, ENTER };
+eInput direction = RIGHT;
+eInput input = NONE;
 
-void handleInput() {
-  if (console::key(console::K_LEFT)) {
-    direction = LEFT;
-  }
+void recieveInput() {
+  // Directions
+  if (console::key(console::K_LEFT)) { direction = LEFT; }
+  if (console::key(console::K_RIGHT)) { direction = RIGHT; }
+  if (console::key(console::K_UP)) { direction = UP; }
+  if (console::key(console::K_DOWN)) { direction = DOWN; }
 
-  if (console::key(console::K_RIGHT)) {
-    direction = RIGHT;
+  // Inputs
+  if (console::key(console::K_ESC)){
+    input = ESC;
+    exit(0);
   }
-
-  if (console::key(console::K_UP)) {
-    direction = UP;
-  }
-
-  if (console::key(console::K_DOWN)) {
-    direction = DOWN;
-  }
+  if (isGameOver && console::key(console::K_ENTER)) { input = ENTER; }
+  if (console::key(console::K_NONE)) { input = NONE; }
 }
 
-void move() {
-  if (frame % MOVE_DELAY == 0) {
+void move() { // Moves only when !isGameOver.
+  if (!isGameOver && frame % MOVE_DELAY == 0) {
     switch (direction) {
     case LEFT:
         x--;
@@ -115,6 +117,41 @@ void drawScore() {
   console::draw((BOARD_SIZE / 2) - 2, BOARD_SIZE, "Score: " + std::to_string(score));
 }
 
+void drawGameOver() {
+  console::draw((BOARD_SIZE / 4), BOARD_SIZE / 2, "YOU LOSE!");
+  console::draw((BOARD_SIZE / 8), (BOARD_SIZE / 2) + 1, "Try again? (Enter)");
+}
+
+void checkCollision() {
+  // Walls
+  if (x == 0 || x == BOARD_SIZE - 1 || y == 0 || y == BOARD_SIZE - 1) {
+    isGameOver = true;
+  }
+}
+
+void checkGameOver() {
+  checkCollision();
+  // etc...
+
+  if (isGameOver) {
+    drawGameOver();
+
+    if (input == ENTER) {
+      isGameOver = false;
+      x = 0, y = 0;
+      tailX = 0, tailY = 0;
+      appleX = 0, appleY = 0;
+      score = 0;
+      frame = 0;
+      isGameOver = false;
+      direction = RIGHT;
+      input = NONE;
+      gameLogic(); // Restart the game.
+    }
+  }
+}
+
+// Game runs through this.
 void gameLogic() {
   initializeSeed(); // For random seed
   console::init();
@@ -126,15 +163,17 @@ void gameLogic() {
     console::clear();
     
     restrictInScreen();
-    drawBoard();
-    handleInput();
-    move();
-    drawScore();
+    drawBoard(); // 1. Draw.
+    recieveInput(); // 2. Recieve user input.
+    checkGameOver(); // 3. Check if it's not Game Over.
+    move(); // 4. If it's not, move.
+    // checkEat();
+    drawScore(); // 5. etc...
 
     // 화면을 갱신하고 다음 프레임까지 대기한다.
     console::wait();
     
-    if (frame == 60) {
+    if (frame == 60) { // Just scared about overflow.
       frame = 0;
     }
 
