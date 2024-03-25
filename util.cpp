@@ -33,6 +33,7 @@ bool isGameOver = false;
 enum eInput { LEFT, RIGHT, UP, DOWN, NONE, ESC, ENTER };
 eInput direction = RIGHT;
 eInput input = NONE;
+int tmp = 0;
 
 void recieveInput() {
   // Directions
@@ -72,8 +73,23 @@ void initSnake() {
 }
 
 void initApple() {
-  appleX = (std::rand() % (BOARD_SIZE - 2)) + 1; // 1 - 13
-  appleY = (std::rand() % (BOARD_SIZE - 2)) + 1; // 1 - 13
+  int avails = ((BOARD_SIZE - 2) * (BOARD_SIZE - 2)) - (tailLength + 1);
+  int availCoords[2][avails];
+  int index = 0;
+  bool avail = false;
+
+  // availCoords[0][0] = 3; // x, (3, 7)
+  // availCoords[1][0] = 7; // y
+
+  // x, y 동일 / tailX, tailY 동일 둘 중 하나라도 있으면 안 됨.
+
+  int randInt = std::rand() % avails; // 0 to 167(at first time)
+  // appleX = availCoords[0][0];
+  // appleY = availCoords[1][0];
+  
+  appleX = availCoords[0][randInt];
+  appleY = availCoords[1][randInt];
+  tmp = avails;
 }
 
 void drawBoard() {
@@ -94,8 +110,8 @@ void drawBoard() {
   }
   
   // Draw snake
-  console::draw(x, y, SNAKE_STRING);
-  drawSnake();
+  console::draw(x, y, SNAKE_STRING); // Head
+  drawSnake(); // Tails
 
   // Draw apple
   console::draw(appleX, appleY, APPLE_STRING);
@@ -110,9 +126,9 @@ void drawSnake() {
 }
 
 void drawScore() {
-  console::draw((BOARD_SIZE / 2) - 2, BOARD_SIZE, "Score: " + std::to_string(tailLength * 10));
-  console::draw(0, BOARD_SIZE + 1, "X: " + std::to_string(x));
-  console::draw(0, BOARD_SIZE + 2, "Y: " + std::to_string(y));
+  std::string score = "Score: " + std::to_string(tailLength * 10);
+  console::draw((BOARD_SIZE / 2) - (score.length() / 2), BOARD_SIZE, score);
+  console::draw((BOARD_SIZE / 2) - (score.length() / 2), BOARD_SIZE + 1, std::to_string(tmp));
 }
 
 void checkCollision() {
@@ -154,7 +170,6 @@ void checkGameOver() {
     if (input == ENTER) { // Reset
       isGameOver = false;
       x = 0, y = 0; appleX = 0, appleY = 0;
-      // ...
       tailLength = 0;
       frame = 0;
       direction = RIGHT; input = NONE;
