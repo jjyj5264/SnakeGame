@@ -107,12 +107,6 @@ void initApple() {
 }
 
 void drawBoard() {
-  // Draw walls
-  console::draw(0, 0, WALL_LEFT_TOP_STRING);
-  console::draw(BOARD_SIZE - 1, 0, WALL_RIGHT_TOP_STRING);
-  console::draw(0, BOARD_SIZE - 1, WALL_LEFT_BOTTOM_STRING);
-  console::draw(BOARD_SIZE - 1, BOARD_SIZE - 1, WALL_RIGHT_BOTTOM_STRING);
-
   for (int i = 1; i < BOARD_SIZE - 1; i++) {
     console::draw(i, 0, WALL_HORIZONTAL_STRING);
     console::draw(i, BOARD_SIZE - 1, WALL_HORIZONTAL_STRING);
@@ -122,12 +116,17 @@ void drawBoard() {
     console::draw(0, i, WALL_VERTICAL_STRING);
     console::draw(BOARD_SIZE - 1, i, WALL_VERTICAL_STRING);
   }
-  
+
   // Draw snake
   drawSnake(); // Tails
 
   // Draw apple
   console::draw(appleX, appleY, APPLE_STRING);
+
+  console::draw(0, 0, WALL_LEFT_TOP_STRING);
+  console::draw(BOARD_SIZE - 1, 0, WALL_RIGHT_TOP_STRING);
+  console::draw(0, BOARD_SIZE - 1, WALL_LEFT_BOTTOM_STRING);
+  console::draw(BOARD_SIZE - 1, BOARD_SIZE - 1, WALL_RIGHT_BOTTOM_STRING);
 }
 
 void drawSnake() {
