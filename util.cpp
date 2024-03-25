@@ -80,6 +80,8 @@ void initApple() {
 
   // availCoords[0][0] = 3; // x, (3, 7)
   // availCoords[1][0] = 7; // y
+  // availCoords[0][0] = x,
+  // availCoords[1][0] = y,
 
   // x, y 동일 / tailX, tailY 동일 둘 중 하나라도 있으면 안 됨.
 
