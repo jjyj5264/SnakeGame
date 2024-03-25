@@ -12,7 +12,7 @@
 #define WALL_RIGHT_BOTTOM_STRING "┛"
 #define WALL_LEFT_BOTTOM_STRING "┗"
 #define SNAKE_STRING "■"
-#define SNAKE_BODY_STRING "▪"
+#define SNAKE_BODY_STRING "■"
 #define APPLE_STRING "●"
 
 void gameLogic();
@@ -162,7 +162,7 @@ void drawGameWin() {
 }
 
 void checkGameWin() {
-  if (tailLength == (BOARD_SIZE - 1) * (BOARD_SIZE - 1)) {
+  if (tailLength == (BOARD_SIZE - 2) * (BOARD_SIZE - 2) - 1) {
     drawGameWin();
   }
 }
@@ -193,6 +193,7 @@ void checkGameOver() {
 void checkEat() {
   if (x == appleX && y == appleY) { // If it's true.
     tailLength++;
+    checkGameWin();
     initApple();
   }
 }
@@ -232,6 +233,7 @@ void move() {
     }
   }
 
+  checkGameWin();
   checkGameOver();
 }
 
@@ -257,7 +259,7 @@ void gameLogic() {
     // 화면을 갱신하고 다음 프레임까지 대기한다.
     console::wait();
     
-    if (frame > 60) { // Just scared about overflow.
+    if (frame == 60) { // Just scared about overflow.
       frame = 0;
     }
 
