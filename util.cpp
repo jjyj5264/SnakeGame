@@ -33,7 +33,6 @@ bool isGameOver = false;
 enum eInput { LEFT, RIGHT, UP, DOWN, NONE, ESC, ENTER };
 eInput direction = RIGHT;
 eInput input = NONE;
-int tmp = 0;
 
 void recieveInput() {
   // Directions
@@ -66,8 +65,9 @@ void initSnake() {
 
 void initApple() {
   int avails = ((BOARD_SIZE - 2) * (BOARD_SIZE - 2)) - (tailLength + 1);
-  int availCoords[2][avails];
+  int availCoords[2][avails]; // [0][] = x coords, [1][] = y coords.
   int index = 0;
+  bool isAvail = true;
   
   // 뱀과 사과가 생성되는 x, y = (1, 1) to (13, 13)이다. 0과 14는 벽이다.
   // 조건 1. 뱀 머리와 좌표 동일 / 꼬리와 좌표 동일 둘 다 아니어야만 한다.
@@ -76,16 +76,34 @@ void initApple() {
 
   int randInt = std::rand() % avails;
 
-  for (int i = 1; i < BOARD_SIZE - 1; i++) {
-    for (int j = 1; j < BOARD_SIZE - 1; j++) {
-      index++;
+  // Checking section.
+  for (int yF = 1; yF < BOARD_SIZE - 1; yF++) { // yF = 1 to 13
+    for (int xF = 1; xF < BOARD_SIZE - 1; xF++) { // xF = 1 to 13
+      // 1. compare with x, y(snake's head)
+      if (x == xF && y == yF) { // Same?
+        isAvail = false; // Then go off.
+      }
+
+      // 2. compare with tailX[], tailY[].
+      for (int i = 0; i < tailLength; i++) { // i = 0 to tailLength - 1, which is good for searching with tailX[]'s and tailY[]'s index.
+        if (tailX[i] == xF && tailY[i] == yF) { // Same?
+          isAvail = false;
+        }
+      }
+
+      if (isAvail) { // Is that good?
+        availCoords[0][index] = xF;
+        availCoords[1][index] = yF;
+        index++;
+      }
+
+      isAvail = true;
     }
   }
 
-  appleX = (std::rand() % 13) + 1;
-  appleY = (std::rand() % 13) + 1;
-
-  tmp = index;
+  int randIndex = std::rand() % index;
+  appleX = availCoords[0][randIndex];
+  appleY = availCoords[1][randIndex];
 }
 
 void drawBoard() {
@@ -123,7 +141,6 @@ void drawSnake() {
 void drawScore() {
   std::string score = "Score: " + std::to_string(tailLength * 10);
   console::draw((BOARD_SIZE / 2) - (score.length() / 2), BOARD_SIZE, score);
-  console::draw((BOARD_SIZE / 2) - (score.length() / 2), BOARD_SIZE + 1, std::to_string(tmp));
 }
 
 void checkCollision() {
@@ -175,13 +192,12 @@ void checkGameOver() {
 
 void checkEat() {
   if (x == appleX && y == appleY) { // If it's true.
-    initApple();
     tailLength++;
+    initApple();
   }
 }
 
 void move() {
-  recieveInput();
   if (!isGameOver && frame % MOVE_DELAY == 0) {
     int prevX = tailX[0];
     int prevY = tailY[0];
@@ -241,7 +257,7 @@ void gameLogic() {
     // 화면을 갱신하고 다음 프레임까지 대기한다.
     console::wait();
     
-    if (frame == 60) { // Just scared about overflow.
+    if (frame > 60) { // Just scared about overflow.
       frame = 0;
     }
 
