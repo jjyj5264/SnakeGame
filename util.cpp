@@ -37,18 +37,10 @@ int tmp = 0;
 
 void recieveInput() {
   // Directions
-  if (console::key(console::K_LEFT) && direction != RIGHT) {
-    direction = LEFT;
-  }
-  if (console::key(console::K_RIGHT) && direction != LEFT) {
-    direction = RIGHT;
-  }
-  if (console::key(console::K_UP) && direction != DOWN) {
-    direction = UP;
-  }
-  if (console::key(console::K_DOWN) && direction != UP) {
-    direction = DOWN;
-  }
+  if (console::key(console::K_LEFT) && (direction != RIGHT || tailLength == 0)) { direction = LEFT; }
+  if (console::key(console::K_RIGHT) && (direction != LEFT || tailLength == 0)) { direction = RIGHT; }
+  if (console::key(console::K_UP) && (direction != DOWN || tailLength == 0)) { direction = UP; }
+  if (console::key(console::K_DOWN) && (direction != UP || tailLength == 0)) { direction = DOWN; }
 
   // Inputs
   if (console::key(console::K_ESC)){
@@ -76,22 +68,24 @@ void initApple() {
   int avails = ((BOARD_SIZE - 2) * (BOARD_SIZE - 2)) - (tailLength + 1);
   int availCoords[2][avails];
   int index = 0;
-  bool avail = false;
-
-  // availCoords[0][0] = 3; // x, (3, 7)
-  // availCoords[1][0] = 7; // y
-  // availCoords[0][0] = x,
-  // availCoords[1][0] = y,
-
-  // x, y 동일 / tailX, tailY 동일 둘 중 하나라도 있으면 안 됨.
-
-  int randInt = std::rand() % avails; // 0 to 167(at first time)
-  // appleX = availCoords[0][0];
-  // appleY = availCoords[1][0];
   
-  appleX = availCoords[0][randInt];
-  appleY = availCoords[1][randInt];
-  tmp = avails;
+  // 뱀과 사과가 생성되는 x, y = (1, 1) to (13, 13)이다. 0과 14는 벽이다.
+  // 조건 1. 뱀 머리와 좌표 동일 / 꼬리와 좌표 동일 둘 다 아니어야만 한다.
+  // 조건 2. 사과는 x, y  = 1 to 13에 생성되어야 한다.
+  // 조건 3. availCoords[][]에 담길 수 있는 x, y = 1 to 13.
+
+  int randInt = std::rand() % avails;
+
+  for (int i = 1; i < BOARD_SIZE - 1; i++) {
+    for (int j = 1; j < BOARD_SIZE - 1; j++) {
+      index++;
+    }
+  }
+
+  appleX = (std::rand() % 13) + 1;
+  appleY = (std::rand() % 13) + 1;
+
+  tmp = index;
 }
 
 void drawBoard() {
@@ -112,7 +106,6 @@ void drawBoard() {
   }
   
   // Draw snake
-  console::draw(x, y, SNAKE_STRING); // Head
   drawSnake(); // Tails
 
   // Draw apple
@@ -188,6 +181,7 @@ void checkEat() {
 }
 
 void move() {
+  recieveInput();
   if (!isGameOver && frame % MOVE_DELAY == 0) {
     int prevX = tailX[0];
     int prevY = tailY[0];
@@ -212,7 +206,7 @@ void move() {
         x++;
         break;
       case UP:
-        y--;
+        y--; // Remember that the spawn point is (CENTER, CENTER).
         break;
       case DOWN:
         y++;
