@@ -24,8 +24,8 @@ void initializeSeed() {
 }
 
 int x = 0, y = 0; // Coordinate of Snake's Head.
-int tailX[(BOARD_SIZE - 1) * (BOARD_SIZE - 1)];
-int tailY[(BOARD_SIZE - 1) * (BOARD_SIZE - 1)];
+int tailX[(BOARD_SIZE - 2) * (BOARD_SIZE - 2)];
+int tailY[(BOARD_SIZE - 2) * (BOARD_SIZE - 2)];
 int tailLength = 0;
 int appleX = 0, appleY = 0;
 int frame = 0;
